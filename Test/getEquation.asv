@@ -1,0 +1,67 @@
+function eq=getEquation(model,reactionID)
+            eq={};
+            [reactant,~,reactantNum]=model.getReactants(reactionID);
+            [product,~,productsNum]=model.getProducts(reactionID);
+            for i = 1:length(reactant)
+                if i == length(reactant)
+                    eq=sprintf('%s%s%s',string(eq),string(-cell2mat(reactantNum(i))),string(reactant(i)));
+                    % eq=sprintf('%s%s',string(eq),string(reactant(i)));
+                    % eq=[string(eq) string(-cell2mat(reactantNum(i)))];
+                    % eq=[eq reactant(i)];
+                else
+                    eq=sprintf('%s%s%s%s',string(eq),string(-cell2mat(reactantNum(i))),string(reactant(i)),'+');
+                    % eq=sprintf('%s%s',string(eq),string(reactant(i)));
+                    % eq=[eq -cell2mat(reactantNum(i))];
+                    % eq=[eq reactant(i)];
+                    % eq=[eq '+'];
+                end
+            end
+            reactionIndex = find(strcmp(model.now.rxns, reactionID));
+            bool=model.now.rev(reactionIndex);
+            if bool
+                eq=[eq,'<=>'];
+            else
+                eq=[eq,'=>'];
+            end
+
+            for i = 1:length(product)
+                if i == length(product)
+                    eq=sprintf('%s%s%s',string(eq),string(cell2mat(productsNum(i))),string(product(i)));
+                    % eq=[eq,cell2mat(productsNum(i))];
+                    % eq=[eq,product(i)];
+                else
+                    eq=sprintf('%s%s%s%s',string(eq),string(cell2mat(productsNum(i))),string(product(i)),'+');
+                    % eq=[eq,cell2mat(productsNum(i))];
+                    % eq=[eq,product(i)];
+                    % eq=[eq,'+'];
+                end
+            end
+end
+
+
+            
+
+
+
+        function [metabolites,metabolitesName,metabolitesNum]=findMetaboliteFromReaction(model,reactionID)
+            S = model.S;
+            % find rxnID
+            reactionIndex = find(strcmp(model.rxns, reactionID));
+            if ~isempty(reactionIndex)
+                % prase the reaction
+                reactionStoichiometry = S(:, reactionIndex);
+                % 初始化反应物和产物的容器
+                metabolites = {}; % 存储反应物
+                metabolitesName = {}; % 存储反应物的名称
+                metabolitesNum = {}; % 存储反应物的数量
+                % 遍历反应的代谢物和化学计量
+                for i = 1:length(reactionStoichiometry)
+                    if reactionStoichiometry(i) ~= 0
+                        % 如果系数小于0，则为反应物
+                        metabolites{end+1} = strcat(model.mets{i}, '[1]'); 
+                        metabolitesName{end+1} = model.metNames{i};
+                        metabolitesNum{end+1} = full(reactionStoichiometry(i));  % 将稀疏矩阵转换为数值
+                    end
+                end
+            end
+        end
